@@ -39,7 +39,7 @@ const roughnessTexture = textureLoader.load("/textures/door/roughness.jpg");
 colorTexture.colorSpace = THREE.SRGBColorSpace;
 
 // when using min and mag filter you dont need to use Mipmaping anymore. Turn if off to save gpu processing
-colorTexture.generateMipmaps = false
+colorTexture.generateMipmaps = false;
 colorTexture.minFilter = THREE.NearestFilter;
 colorTexture.magFilter = THREE.NearestFilter;
 
