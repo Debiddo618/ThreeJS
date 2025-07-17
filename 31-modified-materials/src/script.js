@@ -101,7 +101,7 @@ material.onBeforeCompile = (shader) => {
     `
             #include <beginnormal_vertex>
 
-            float angle = (position.y + 4.0) * sin(uTime) * 0.9;
+            float angle = (position.y + uTime) * 0.9;
             mat2 rotateMatrix = get2dRotateMatrix(angle);
 
             objectNormal.xz = rotateMatrix * objectNormal.xz;
