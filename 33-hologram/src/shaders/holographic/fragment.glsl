@@ -2,6 +2,10 @@ varying vec3 vPosition;
 uniform float uTime;
 varying vec3 vNormal;
 uniform vec3 uColor;
+varying float vGlitch;
+
+#include ../includes/random2D.glsl
+
 
 void main()
 {
@@ -28,10 +32,13 @@ void main()
     holographic += fresnel * 1.25;
     holographic *= falloff;
 
+    // Glitch Color
+    vec3 glitchColor = vec3(0.0, 0.0, 200.0);
+    vec3 finalColor = mix(uColor, glitchColor, vGlitch);
 
     // Final color
     // gl_FragColor = vec4(1.0, 1.0, 1.0, stripes);
-    gl_FragColor = vec4(uColor, holographic);
+    gl_FragColor = vec4(finalColor, holographic);
 
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
