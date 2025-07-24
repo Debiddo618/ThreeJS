@@ -4,10 +4,17 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
+import firefliesVertexShader from "./shaders/fireflies/vertex.glsl";
+import firefliesFragmentShader from "./shaders/fireflies/fragment.glsl";
+
+import portalVertexShader from "./shaders/portal/vertex.glsl";
+import portalFragmentShader from "./shaders/portal/fragment.glsl";
+
 /**
  * Base
  */
 // Debug
+const debugObject = {};
 const gui = new GUI({
   width: 400,
 });
@@ -46,7 +53,29 @@ gltfLoader.setDRACOLoader(dracoLoader);
 const bakedMaterial = new THREE.MeshBasicMaterial({ map: bakedTexture });
 
 // Portal light material
-const portalLightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const portalLightMaterial = new THREE.ShaderMaterial({
+  vertexShader: portalVertexShader,
+  fragmentShader: portalFragmentShader,
+  uniforms: {
+    uTime: { value: 0 },
+    uColorStart: { value: new THREE.Color(0xffffff) },
+    uColorEnd: { value: new THREE.Color(0xd6fcff) },
+  },
+});
+
+debugObject.portalColorStart = "#ffffff";
+debugObject.portalColorEnd = "#d6fcff";
+
+gui.addColor(debugObject, "portalColorStart").onChange(() => {
+  portalLightMaterial.uniforms.uColorStart.value.set(
+    debugObject.portalColorStart
+  );
+});
+
+gui.addColor(debugObject, "portalColorEnd").onChange(() => {
+  portalLightMaterial.uniforms.uColorEnd.value.set(debugObject.portalColorEnd);
+
+});
 
 // Pole light material
 const poleLightMaterial = new THREE.MeshBasicMaterial({ color: 0xd6fcff });
@@ -79,11 +108,65 @@ gltfLoader.load("portal.glb", (gltf) => {
   // Apply materials
   bakedMesh.material = bakedMaterial;
   portalLightMesh.material = portalLightMaterial;
+  portalLightMaterial.side = THREE.DoubleSide;
   poleLightAMesh.material = poleLightMaterial;
   poleLightBMesh.material = poleLightMaterial;
 
   scene.add(gltf.scene);
 });
+
+/**
+ * Fireflies
+ */
+// Geometry
+const firefliesGeometry = new THREE.BufferGeometry();
+const firefliesCount = 30;
+const positionArray = new Float32Array(firefliesCount * 3);
+
+const scaleArray = new Float32Array(firefliesCount);
+
+for (let i = 0; i < firefliesCount; i++) {
+  positionArray[i * 3 + 0] = (Math.random() - 0.5) * 4;
+  positionArray[i * 3 + 1] = Math.random() * 1.5;
+  positionArray[i * 3 + 2] = (Math.random() - 0.5) * 4;
+
+  scaleArray[i] = Math.random();
+}
+
+firefliesGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(positionArray, 3)
+);
+
+firefliesGeometry.setAttribute(
+  "aScale",
+  new THREE.BufferAttribute(scaleArray, 1)
+);
+
+// Material
+const firefliesMaterial = new THREE.ShaderMaterial({
+  vertexShader: firefliesVertexShader,
+  fragmentShader: firefliesFragmentShader,
+  uniforms: {
+    uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+    uSize: { value: 100 },
+    uTime: { value: 0 },
+  },
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+gui
+  .add(firefliesMaterial.uniforms.uSize, "value")
+  .min(0)
+  .max(500)
+  .step(1)
+  .name("firefliesSize");
+
+// Points
+const fireflies = new THREE.Points(firefliesGeometry, firefliesMaterial);
+scene.add(fireflies);
 
 /**
  * Sizes
@@ -101,6 +184,12 @@ window.addEventListener("resize", () => {
   // Update camera
   camera.aspect = sizes.width / sizes.height;
   camera.updateProjectionMatrix();
+
+  // Update fireflies
+  firefliesMaterial.uniforms.uPixelRatio.value = Math.min(
+    window.devicePixelRatio,
+    2
+  );
 
   // Update renderer
   renderer.setSize(sizes.width, sizes.height);
@@ -136,6 +225,13 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+// Clear color
+debugObject.clearColor = "rgba(87, 52, 118, 1)";
+renderer.setClearColor(debugObject.clearColor);
+gui.addColor(debugObject, "clearColor").onChange(() => {
+  renderer.setClearColor(debugObject.clearColor);
+});
+
 /**
  * Animate
  */
@@ -146,6 +242,10 @@ const tick = () => {
 
   // Update controls
   controls.update();
+
+  // Update materials
+  firefliesMaterial.uniforms.uTime.value = elapsedTime;
+  portalLightMaterial.uniforms.uTime.value = elapsedTime;
 
   // Render
   renderer.render(scene, camera);
