@@ -226,7 +226,7 @@ renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 // Clear color
-debugObject.clearColor = "#573476ff";
+debugObject.clearColor = "#573476";
 renderer.setClearColor(debugObject.clearColor);
 gui.addColor(debugObject, "clearColor").onChange(() => {
   renderer.setClearColor(debugObject.clearColor);
