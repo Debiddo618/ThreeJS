@@ -13,6 +13,7 @@
     "vite-plugin-restart": "^0.4.2"
   },
   "dependencies": {
+    "@netlify/vite-plugin": "^2.5.4",
     "@react-three/drei": "^10.0.4",
     "@react-three/fiber": "^9.1.0",
     "r3f-perf": "^7.2.3",
